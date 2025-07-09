@@ -110,7 +110,28 @@ vec, text_sources = load_and_vectorize_data(tokenizer, model)
 
 # ユーザー入力
 text_x_input = st.text_area('判定したいテキストを入力して下さい：')
-F_input = st.number_input("フォロワー数：", min_value=0, value=210970)
+# フォロワー数入力
+follower_options = {
+    "約100人": 100,
+    "約1,000人": 1000,
+    "約10,000人": 10000,
+    "約100,000人": 100000,
+    "約1,000,000人": 1000000,
+    "カスタム入力": "custom"
+}
+default_index = list(follower_options.keys()).index("カスタム入力")
+
+selected_option_key = st.selectbox(
+    "フォロワー数",
+    options=list(follower_options.keys()),
+    index=default_index,
+    help="リストから選択するか、「カスタム入力」を選んで数値を直接入力してください。"
+)
+
+if follower_options[selected_option_key] == "custom":
+    F_input = st.number_input('フォロワー数を直接入力', min_value=0, value=210970, step=100, label_visibility="collapsed")
+else:
+    F_input = follower_options[selected_option_key]
 
 if st.button("判定実行"):
     if not text_x_input.strip():
