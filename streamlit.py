@@ -110,8 +110,29 @@ vec, text_sources = load_and_vectorize_data(tokenizer, model)
 
 # ユーザー入力
 text_x_input = st.text_area('判定したいテキストを入力して下さい：')
-F_input = st.number_input("フォロワー数：", min_value=0, value=210970)
+# session_stateをフォロワー数入力に利用
+if 'follower_count' not in st.session_state:
+    st.session_state.follower_count = 210970  # デフォルト値
 
+def set_follower_count(count):
+    """ボタンクリックでフォロワー数を設定するコールバック関数"""
+    st.session_state.follower_count = count
+
+# フォロワー数入力UI
+st.number_input("フォロワー数：", min_value=0, key='follower_count')
+
+st.write("または、おおよその数を選択:")
+follower_options = {
+    "1千": 1000,
+    "1万": 10000,
+    "10万": 100000,
+    "100万": 1000000,
+}
+cols = st.columns(len(follower_options))
+for i, (label, count) in enumerate(follower_options.items()):
+    cols[i].button(
+        label, on_click=set_follower_count, args=(count,), use_container_width=True
+    )
 if st.button("判定実行"):
     if not text_x_input.strip():
         st.warning("テキストを入力してください。")
