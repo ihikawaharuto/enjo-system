@@ -1,97 +1,160 @@
+import streamlit as st
 import torch
 from transformers import BertJapaneseTokenizer, BertModel
 import logging
 import numpy as np
-logging.basicConfig(level=logging.ERROR)
-tokenizer = BertJapaneseTokenizer.from_pretrained('cl-tohoku/bert-base-japanese-v2')
-model = BertModel.from_pretrained('cl-tohoku/bert-base-japanese-v2')
 
-#関数保管場所
-#safe,outファイルを読み込み
+logging.basicConfig(level=logging.ERROR)
+
+# --- 関数定義 (元のコードから構造を維持) ---
+
+# モデルとトークナイザーの読み込み（アプリ起動時に一度だけ実行される）
+@st.cache_resource
+def load_model_and_tokenizer():
+    """BERTモデルとトークナイザーを読み込み、キャッシュします。"""
+    tokenizer = BertJapaneseTokenizer.from_pretrained('cl-tohoku/bert-base-japanese-v2')
+    model = BertModel.from_pretrained('cl-tohoku/bert-base-japanese-v2')
+    return tokenizer, model
+
+# safe,outファイルを読み込み
 def lode_file(filename):
+    """テキストとスコアをファイルから読み込みます。"""
     texts, scores = [], []
-    with open(filename, "r", encoding="utf-8") as file:
-        for line in file:
-            word, score = line.strip().split(',')
-            texts.append(word)
-            scores.append(score)
+    try:
+        with open(filename, "r", encoding="utf-8") as file:
+            for line in file:
+                parts = line.strip().split(',')
+                if len(parts) == 2:
+                    texts.append(parts[0])
+                    scores.append(parts[1])
+    except FileNotFoundError:
+        st.error(f"エラー: データファイル '{filename}' が見つかりません。")
     return texts, scores
 
-#ベクトル化処理
-def text_vec(text):
+# テキストのベクトル化
+def text_vec(text, tokenizer, model):
+    """単一のテキストをベクトル化します。"""
     tmp = tokenizer.encode_plus(text, truncation=True, padding=False, return_tensors='pt')
     outputs = model(**tmp)
     return outputs.pooler_output.detach().numpy()[0]
 
-#ファイルのベクトル化
-def list_vec(texts_list, scores_list, label):
+# ファイルのベクトル化
+def list_vec(texts_list, scores_list, label, tokenizer, model):
+    """テキストのリストをベクトル化します。"""
     vectors, sources = [], []
     for text, score in zip(texts_list, scores_list):
-        vectors.append(text_vec(text))
+        vectors.append(text_vec(text, tokenizer, model))
         sources.append((text, label, score))
     return vectors, sources
 
-#コサイン類似度を求める
-def comp_sim(qvec,tvec):
+# コサイン類似度を求める
+def comp_sim(qvec, tvec):
+    """2つのベクトル間のコサイン類似度を計算します。"""
     return np.dot(qvec, tvec) / (np.linalg.norm(qvec) * np.linalg.norm(tvec))
 
-
-#listの平均値算出
+# listの平均値算出
 def average_file(filename):
+    """ファイル内の数値の平均を計算します。"""
     number = []
-    with open(filename, 'r', encoding="utf-8") as file:
-         for line in file:
-             number.append(float(line.strip()))
+    try:
+        with open(filename, 'r', encoding="utf-8") as file:
+            for line in file:
+                try:
+                    number.append(float(line.strip()))
+                except (ValueError, IndexError):
+                    continue  # 数値に変換できない行はスキップ
+    except FileNotFoundError:
+        return 0.75  # ファイルがない場合はデフォルト値
     return float(sum(number) / len(number)) if len(number) != 0 else 0.75
 
-#safe,outファイルを読み込みベクトル化
-text_safe, score_safe = lode_file("safe.txt")
-text_out, score_out = lode_file("out.txt")
+# データをロードしてベクトル化する処理をキャッシュ
+@st.cache_data
+def load_and_vectorize_data(_tokenizer, _model):
+    """safe,outファイルを読み込みベクトル化します。"""
+    text_safe, score_safe = lode_file("safe.txt")
+    text_out, score_out = lode_file("out.txt")
 
-vec_safe, sources_safe = list_vec(text_safe, score_safe, label="safe")
+    vec_safe, sources_safe = list_vec(text_safe, score_safe, "safe", _tokenizer, _model)
+    vec_out, sources_out = list_vec(text_out, score_out, "out", _tokenizer, _model)
 
-vec_out, sources_out = list_vec(text_out, score_out, label="out")
+    vec = vec_safe + vec_out
+    text_sources = sources_safe + sources_out
+    return vec, text_sources
 
-vec = vec_safe + vec_out
-text_sources = sources_safe + sources_out
+# --- Streamlit アプリケーションのUIとロジック ---
 
+st.title("炎上リスク判定システム")
 
-#text_xを受け取りベクトル化、類似度を測り、判定を出力
-similarity_score = []
-defferent_sim = []
+# モデルとデータの準備
+tokenizer, model = load_model_and_tokenizer()
+vec, text_sources = load_and_vectorize_data(tokenizer, model)
 
-text_x = input('判定したいテキストを入力して下さい：')
+# ユーザー入力
+text_x_input = st.text_area('判定したいテキストを入力して下さい：')
+F_input = st.number_input("フォロワー数：", min_value=0, value=210970)
 
-vec_x = text_vec(text_x)
+if st.button("判定実行"):
+    if not text_x_input.strip():
+        st.warning("テキストを入力してください。")
+    elif not vec:
+        st.error("比較用データが見つかりません。safe.txt, out.txt を確認してください。")
+    else:
+        # text_xを受け取りベクトル化、類似度を測り、判定を出力
+        vec_x = text_vec(text_x_input, tokenizer, model)
 
-for tvec in vec:
-    similarities = comp_sim(vec_x, tvec)
-    similarity_score.append(similarities)
-most_similar_index = np.argmax(similarity_score)
-most_similar_text, source_file ,B = text_sources[most_similar_index]
-most_similar_score = similarity_score[most_similar_index]
+        similarity_score = []
+        for tvec in vec:
+            similarities = comp_sim(vec_x, tvec)
+            similarity_score.append(similarities)
+        
+        most_similar_index = np.argmax(similarity_score)
+        most_similar_text, source_file, B = text_sources[most_similar_index]
+        most_similar_score = similarity_score[most_similar_index]
 
-F = 210970
-F = int(input("フォロワー数："))
-if source_file == "safe":
-    P = 0
-elif source_file == "out":
-    P = 1
-I = int(F * 0.3 + F ** 0.1 * (1 + 210970 * (int(B) / 100) ** 3.2 * (1 + 0.5 * (int(B) / 100) ** 5 * P)))
-R = int(I * 0.01 * (1 + 2 * (int(B) / 100) ** 2) * (1 + P))
-L = int(I * 0.03 * (1 + 0.5 * (int(B) / 100) ** 0.7) * (1 + 0.1 * P))
-print("似ている文：" + most_similar_text + "、類似度：" + str(most_similar_score))
-print("インプレッション数：" + str(I) + "、リポスト数：" + str(R) + "、いいね数：" + str(L))
-if most_similar_score < average_file('different_sim.txt'): # 卍要検討卍
-  print("判定不可")
-else:
-  if "safe" in source_file:
-      print("判定：SAFE、バズスコア：" + B)
-  elif "out" in source_file:
-      print("判定：OUT、バズスコア：" + B)
+        # IRLの計算
+        F = F_input
+        if source_file == "safe":
+            P = 0
+        elif source_file == "out":
+            P = 1
+        
+        I = int(F * 0.3 + F ** 0.1 * (1 + 210970 * (int(B) / 100) ** 3.2 * (1 + 0.5 * (int(B) / 100) ** 5 * P)))
+        R = int(I * 0.01 * (1 + 2 * (int(B) / 100) ** 2) * (1 + P))
+        L = int(I * 0.03 * (1 + 0.5 * (int(B) / 100) ** 0.7) * (1 + 0.1 * P))
 
-check = str(input('あなたの判定は？(safe/out):'))
+        # 結果の表示
+        st.write("---")
+        st.write(f"似ている文：{most_similar_text}、類似度：{most_similar_score:.4f}")
+        st.write(f"インプレッション数：{I:,}、リポスト数：{R:,}、いいね数：{L:,}")
 
-if check != source_file:
-    with open('different_sim.txt', 'a', encoding="utf-8") as file:
-        file.write(str(similarities))
+        if most_similar_score < average_file('different_sim.txt'):  # 卍要検討卍
+            st.warning("判定不可")
+        else:
+            if "safe" in source_file:
+                st.success(f"判定：SAFE、バズスコア：{B}")
+            elif "out" in source_file:
+                st.error(f"判定：OUT、バズスコア：{B}")
+        
+        # フィードバックのために結果を保存
+        st.session_state.last_result = {
+            'source_file': source_file,
+            'similarity_score': most_similar_score
+        }
+
+# フィードバックセクション
+if 'last_result' in st.session_state:
+    st.write("---")
+    check = st.radio('あなたの判定は？(safe/out):', ('safe', 'out'), key='feedback_radio')
+    
+    if st.button("フィードバックを送信"):
+        last_result = st.session_state.last_result
+        if check != last_result['source_file']:
+            try:
+                with open('different_sim.txt', 'a', encoding="utf-8") as file:
+                    # 最も類似したスコアを書き込むように修正
+                    file.write(f"\n{last_result['similarity_score']:.4f}")
+                st.toast("フィードバックを記録しました。ありがとうございます。")
+            except Exception as e:
+                st.error(f"フィードバックの保存中にエラーが発生しました: {e}")
+        else:
+            st.toast("フィードバックありがとうございます！")
