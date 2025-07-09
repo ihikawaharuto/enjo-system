@@ -1,5 +1,4 @@
 import torch
-from transformers import BertForPreTraining
 from transformers import BertJapaneseTokenizer, BertModel
 import logging
 import numpy as np
