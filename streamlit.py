@@ -3,6 +3,7 @@ import torch
 from transformers import BertJapaneseTokenizer, BertModel
 import logging
 import numpy as np  #環境問題(Pythonのバージョンを3.11に設定・変更したため解決)
+import base64
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -81,9 +82,27 @@ def load_and_vectorize_data(_tokenizer, _model):
     text_sources = sources_safe + sources_out
     return vec, text_sources
 
+# 動画ファイルをBase64にエンコードする関数（キャッシュあり）
+@st.cache_data
+def get_video_as_base64(path):
+    """動画ファイルを読み込み、Base64エンコードされた文字列を返す。"""
+    try:
+        with open(path, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    except FileNotFoundError:
+        # st.error(f"動画ファイルが見つかりません: {path}")
+        return None
+    except Exception as e:
+        # st.error(f"動画読み込みエラー: {e}")
+        return None
+    
 # --- Streamlit アプリケーションのUIとロジック ---
 
-st.title("炎上リスク判定システム")
+st.title("炎上判定システム")
+
+# 動画を事前に読み込んでおく
+fire_video_base64 = get_video_as_base64("fire.webm")
 
 # モデルとデータの準備
 tokenizer, model = load_model_and_tokenizer()
@@ -134,7 +153,29 @@ if st.button("判定実行"):
                 st.success(f"判定：SAFE、バズスコア：{B}")
             elif "out" in source_file:
                 st.error(f"判定：OUT、バズスコア：{B}")
-        
+                # --- ここから動画再生のロジック ---
+                if fire_video_base64:
+                    video_html = f"""
+                        <style>
+                            .overlay-video-container {{
+                                position: fixed; /* 画面に固定 */
+                                right: 20px;     /* 右から20pxの位置 */
+                                bottom: 20px;    /* 下から20pxの位置 */
+                                width: 250px;    /* 動画の幅を小さめに設定 */
+                                height: auto;
+                                z-index: 1000;
+                                pointer-events: none; /* 動画がクリック等の操作を妨げないようにする */
+                            }}
+                            .overlay-video-container video {{
+                                mix-blend-mode: screen; /* 黒背景を透過させる魔法 */
+                            }}
+                        </style>
+                        <div class="overlay-video-container">
+                            <video src="data:video/webm;base64,{fire_video_base64}" autoplay loop muted playsinline></video>
+                        </div>
+                    """
+                    st.components.v1.html(video_html, height=0)
+                
         # フィードバックのために結果を保存
         st.session_state.last_result = {
             'source_file': source_file,
