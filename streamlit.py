@@ -83,7 +83,7 @@ def load_and_vectorize_data(_tokenizer, _model):
 
 # --- Streamlit アプリケーションのUIとロジック ---
 
-st.title("炎上リスク判定システム")
+st.title("炎上判定システム")
 
 # モデルとデータの準備
 tokenizer, model = load_model_and_tokenizer()
@@ -134,7 +134,7 @@ if st.button("判定実行"):
                 st.success(f"判定：SAFE、バズスコア：{B}")
             elif "out" in source_file:
                 st.error(f"判定：OUT、バズスコア：{B}")
-        
+                st.video("fire.webm")
         # フィードバックのために結果を保存
         st.session_state.last_result = {
             'source_file': source_file,
