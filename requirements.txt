@@ -5,3 +5,5 @@ sentencepiece
 fugashi
 unidic-lite
 ipadic
+--find-links https://download.pytorch.org/whl/cpu
+torch
