@@ -152,7 +152,7 @@ if st.button("判定実行"):
         most_similar_score = similarity_score[most_similar_index]
 
         # IRLの計算
-        F = F_input
+        F = st.session_state.follower_count
         if source_file == "safe":
             P = 0
         elif source_file == "out":
