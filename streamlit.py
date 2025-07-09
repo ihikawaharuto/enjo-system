@@ -2,7 +2,7 @@ import streamlit as st
 import torch
 from transformers import BertJapaneseTokenizer, BertModel
 import logging
-import numpy as np
+import numpy as np  #環境問題(Pythonのバージョンを3.11に設定・変更したため解決)
 
 logging.basicConfig(level=logging.ERROR)
 
