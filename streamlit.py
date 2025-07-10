@@ -125,8 +125,8 @@ st.write("または、おおよその数を選択:")
 follower_options = {
     "1,000": 1000,
     "10,000": 10000,
-    "10,000": 100000,
-    "100,000": 1000000,
+    "100,000": 100000,
+    "1,000,000": 1000000,
 }
 cols = st.columns(len(follower_options))
 for i, (label, count) in enumerate(follower_options.items()):
