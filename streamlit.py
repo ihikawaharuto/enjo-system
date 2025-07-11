@@ -176,9 +176,15 @@ if st.button("判定実行"):
                 st.error(f"判定：OUT、バズスコア：{B}")
                 # --- ここから動画再生のロジック ---
                 if fire_video_base64:
+                    # HTMLの<video>タグを使い、動画を自動再生します。
+                    # autoplay: 自動再生, muted: 消音(自動再生に必要), loop: 繰り返し, controls: 再生コントロール表示
                     video_html = f"""
+                    <video controls autoplay muted loop playsinline style="width: 100%;">
+                        <source src="data:video/quicktime;base64,{fire_video_base64}" type="video/quicktime">
+                        お使いのブラウザは動画再生に対応していません。(.mov形式の代わりに.mp4形式を推奨します)
+                    </video>
                     """
-                    st.components.v1.html(video_html, height=0)
+                    st.components.v1.html(video_html, height=400) # 表示する高さを適宜調整してください
                 
         # フィードバックのために結果を保存
         st.session_state.last_result = {
