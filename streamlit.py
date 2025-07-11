@@ -4,6 +4,7 @@ from transformers import BertJapaneseTokenizer, BertModel
 import logging
 import numpy as np  #環境問題(Pythonのバージョンを3.11に設定・変更したため解決)
 import base64
+import os
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -101,8 +102,14 @@ def get_video_as_base64(path):
 
 st.title("炎上判定システム")
 
+# --- ファイルパスの準備 ---
+# スクリプトファイルがあるディレクトリの絶対パスを取得
+script_dir = os.path.dirname(os.path.abspath(__file__))
+# 動画ファイルのパスを構築 (より互換性の高い.mp4形式を推奨)
+video_path = os.path.join(script_dir, "fire2.mp4")
+
 # 動画を事前に読み込んでおく
-fire_video_base64 = get_video_as_base64("fire2.mov")
+fire_video_base64 = get_video_as_base64(video_path)
 
 # モデルとデータの準備
 tokenizer, model = load_model_and_tokenizer()
@@ -180,8 +187,8 @@ if st.button("判定実行"):
                     # autoplay: 自動再生, muted: 消音(自動再生に必要), loop: 繰り返し, controls: 再生コントロール表示
                     video_html = f"""
                     <video controls autoplay muted loop playsinline style="width: 100%;">
-                        <source src="data:video/quicktime;base64,{fire_video_base64}" type="video/quicktime">
-                        お使いのブラウザは動画再生に対応していません。(.mov形式の代わりに.mp4形式を推奨します)
+                        <source src="data:video/mp4;base64,{fire_video_base64}" type="video/mp4">
+                        お使いのブラウザは動画再生に対応していません。
                     </video>
                     """
                     st.components.v1.html(video_html, height=400) # 表示する高さを適宜調整してください
