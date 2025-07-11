@@ -91,10 +91,10 @@ def get_video_as_base64(path):
             data = f.read()
         return base64.b64encode(data).decode()
     except FileNotFoundError:
-        # st.error(f"動画ファイルが見つかりません: {path}")
+        st.error(f"動画ファイルが見つかりません: {path}")
         return None
     except Exception as e:
-        # st.error(f"動画読み込みエラー: {e}")
+        st.error(f"動画読み込みエラー: {e}")
         return None
     
 # --- Streamlit アプリケーションのUIとロジック ---
@@ -112,7 +112,7 @@ vec, text_sources = load_and_vectorize_data(tokenizer, model)
 text_x_input = st.text_area('判定したいテキストを入力して下さい：')
 # session_stateをフォロワー数入力に利用
 if 'follower_count' not in st.session_state:
-    st.session_state.follower_count = 210970  # デフォルト値
+    st.session_state.follower_count = 100  # デフォルト値
 
 def set_follower_count(count):
     """ボタンクリックでフォロワー数を設定するコールバック関数"""
