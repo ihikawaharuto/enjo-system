@@ -178,19 +178,6 @@ if st.button("判定実行"):
                 if fire_video_base64:
                     video_html = f"""
                         <style>
-                            .overlay-video-container {{
-                                position: fixed; /* 画面に固定 */
-                                top: 50%;        /* 上から50%の位置 */
-                                left: 50%;       /* 左から50%の位置 */
-                                transform: translate(-50%, -50%); /* 要素自身のサイズを考慮して中央に配置 */
-                                width: 400px;    /* 動画の幅を調整 */
-                                height: auto;
-                                z-index: 1000;
-                                pointer-events: none; /* 動画がクリック等の操作を妨げないようにする */
-                            }}
-                            .overlay-video-container video {{
-                                filter: brightness(1.5) drop-shadow(0 0 15px #ff8c00) drop-shadow(0 0 8px #ff4500); /* グロー効果を調整して迫力を出す */
-                            }}
                         </style>
                         <div class="overlay-video-container">
                             <video src="data:video/webm;base64,{fire_video_base64}" autoplay loop muted playsinline></video>
