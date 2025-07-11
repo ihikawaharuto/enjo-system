@@ -188,7 +188,8 @@ if st.button("判定実行"):
                                 pointer-events: none; /* 動画がクリック等の操作を妨げないようにする */
                             }}
                             .overlay-video-container video {{
-                                mix-blend-mode: screen; /* 黒背景を透過させる魔法 */
+                                mix-blend-mode: screen; /* 黒背景を透過させる */
+                                filter: brightness(1.5) drop-shadow(0 0 7px #ff8c00) drop-shadow(0 0 3px #ff4500); /* 炎を明るくし、グロー効果で視認性を向上 */
                             }}
                         </style>
                         <div class="overlay-video-container">
