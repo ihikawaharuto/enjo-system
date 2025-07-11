@@ -191,7 +191,7 @@ if st.button("判定実行"):
                         お使いのブラウザは動画再生に対応していません。
                     </video>
                     """
-                    st.components.v1.html(video_html, height=400) # 表示する高さを適宜調整してください
+                    st.components.v1.html(video_html, height=20) # 表示する高さを適宜調整してください
                 
         # フィードバックのために結果を保存
         st.session_state.last_result = {
