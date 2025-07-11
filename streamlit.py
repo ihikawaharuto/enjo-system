@@ -186,7 +186,7 @@ if st.button("判定実行"):
                     # HTMLの<video>タグを使い、動画を自動再生します。
                     # autoplay: 自動再生, muted: 消音(自動再生に必要), loop: 繰り返し, controls: 再生コントロール表示
                     video_html = f"""
-                    <video controls autoplay muted loop playsinline style="width: 20px; height: 20px; object-fit: contain;">
+                    <video controls autoplay muted loop playsinline style="width: 100px; height: 100px; object-fit: contain;">
                         <source src="data:video/mp4;base64,{fire_video_base64}" type="video/mp4">
                         お使いのブラウザは動画再生に対応していません。
                     </video>
