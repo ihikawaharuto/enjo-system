@@ -8,29 +8,36 @@ import os
 
 logging.basicConfig(level=logging.ERROR)
 
+# --- 定数定義 ---
+FIRE_GIF_FILENAME = "fire.gif"
+SAFE_TXT_FILENAME = "safe.txt"
+OUT_TXT_FILENAME = "out.txt"
+DIFF_SIM_TXT_FILENAME = "different_sim.txt"
+
 # --- 関数定義 (元のコードから構造を維持) ---
 
 # モデルとトークナイザーの読み込み（アプリ起動時に一度だけ実行される）
 @st.cache_resource
 def load_model_and_tokenizer():
     """BERTモデルとトークナイザーを読み込み、キャッシュします。"""
+    # TODO: モデルのバージョンを定数化することも検討
     tokenizer = BertJapaneseTokenizer.from_pretrained('cl-tohoku/bert-base-japanese-v2')
     model = BertModel.from_pretrained('cl-tohoku/bert-base-japanese-v2')
     return tokenizer, model
 
 # safe,outファイルを読み込み
-def lode_file(filename):
+def load_file(filepath):
     """テキストとスコアをファイルから読み込みます。"""
     texts, scores = [], []
     try:
-        with open(filename, "r", encoding="utf-8") as file:
+        with open(filepath, "r", encoding="utf-8") as file:
             for line in file:
                 parts = line.strip().split(',')
                 if len(parts) == 2:
                     texts.append(parts[0])
                     scores.append(parts[1])
     except FileNotFoundError:
-        st.error(f"エラー: データファイル '{filename}' が見つかりません。")
+        st.error(f"エラー: データファイル '{filepath}' が見つかりません。")
     return texts, scores
 
 # テキストのベクトル化
@@ -55,11 +62,11 @@ def comp_sim(qvec, tvec):
     return np.dot(qvec, tvec) / (np.linalg.norm(qvec) * np.linalg.norm(tvec))
 
 # listの平均値算出
-def average_file(filename):
+def average_file(filepath):
     """ファイル内の数値の平均を計算します。"""
     number = []
     try:
-        with open(filename, 'r', encoding="utf-8") as file:
+        with open(filepath, 'r', encoding="utf-8") as file:
             for line in file:
                 try:
                     number.append(float(line.strip()))
@@ -71,10 +78,10 @@ def average_file(filename):
 
 # データをロードしてベクトル化する処理をキャッシュ
 @st.cache_data
-def load_and_vectorize_data(_tokenizer, _model):
+def load_and_vectorize_data(_tokenizer, _model, safe_path, out_path):
     """safe,outファイルを読み込みベクトル化します。"""
-    text_safe, score_safe = lode_file("safe.txt")
-    text_out, score_out = lode_file("out.txt")
+    text_safe, score_safe = load_file(safe_path)
+    text_out, score_out = load_file(out_path)
 
     vec_safe, sources_safe = list_vec(text_safe, score_safe, "safe", _tokenizer, _model)
     vec_out, sources_out = list_vec(text_out, score_out, "out", _tokenizer, _model)
@@ -85,17 +92,17 @@ def load_and_vectorize_data(_tokenizer, _model):
 
 # 動画ファイルをBase64にエンコードする関数（キャッシュあり）
 @st.cache_data
-def get_video_as_base64(path):
-    """動画ファイルを読み込み、Base64エンコードされた文字列を返す。"""
+def get_file_as_base64(path):
+    """ファイルを読み込み、Base64エンコードされた文字列を返す。"""
     try:
         with open(path, "rb") as f:
             data = f.read()
         return base64.b64encode(data).decode()
     except FileNotFoundError:
-        st.error(f"動画ファイルが見つかりません: {path}")
+        st.error(f"ファイルが見つかりません: {path}")
         return None
     except Exception as e:
-        st.error(f"動画読み込みエラー: {e}")
+        st.error(f"ファイル読み込みエラー: {e}")
         return None
     
 # --- Streamlit アプリケーションのUIとロジック ---
@@ -105,15 +112,19 @@ st.title("炎上判定システム")
 # --- ファイルパスの準備 ---
 # スクリプトファイルがあるディレクトリの絶対パスを取得
 script_dir = os.path.dirname(os.path.abspath(__file__))
-# 動画ファイルのパスを構築 (より互換性の高い.mp4形式を推奨)
-video_path = os.path.join(script_dir, "fire2.mp4")
+# GIFファイルのパスを構築
+gif_path = os.path.join(script_dir, FIRE_GIF_FILENAME)
+# データファイルのパスを構築
+safe_txt_path = os.path.join(script_dir, SAFE_TXT_FILENAME)
+out_txt_path = os.path.join(script_dir, OUT_TXT_FILENAME)
+diff_sim_txt_path = os.path.join(script_dir, DIFF_SIM_TXT_FILENAME)
 
-# 動画を事前に読み込んでおく
-fire_video_base64 = get_video_as_base64(video_path)
+# GIFを事前に読み込んでおく
+fire_gif_base64 = get_file_as_base64(gif_path)
 
 # モデルとデータの準備
 tokenizer, model = load_model_and_tokenizer()
-vec, text_sources = load_and_vectorize_data(tokenizer, model)
+vec, text_sources = load_and_vectorize_data(tokenizer, model, safe_txt_path, out_txt_path)
 
 # ユーザー入力
 text_x_input = st.text_area('判定したいテキストを入力して下さい：')
@@ -174,7 +185,7 @@ if st.button("判定実行"):
         st.write(f"似ている文：{most_similar_text}、類似度：{most_similar_score:.4f}")
         st.write(f"インプレッション数：{I:,}、リポスト数：{R:,}、いいね数：{L:,}")
 
-        if most_similar_score < average_file('different_sim.txt'):  # 卍要検討卍
+        if most_similar_score < average_file(diff_sim_txt_path):  # 卍要検討卍
             st.warning("判定不可")
         else:
             if "safe" in source_file:
@@ -182,16 +193,14 @@ if st.button("判定実行"):
             elif "out" in source_file:
                 st.error(f"判定：OUT、バズスコア：{B}")
                 # --- ここから動画再生のロジック ---
-                if fire_video_base64:
-                    # HTMLの<video>タグを使い、動画を自動再生します。
-                    # autoplay: 自動再生, muted: 消音(自動再生に必要), loop: 繰り返し, controls: 再生コントロール表示
-                    video_html = f"""
-                    <video controls autoplay muted loop playsinline style="width: 100px; height: 100px; object-fit: contain;">
-                        <source src="data:video/mp4;base64,{fire_video_base64}" type="video/mp4">
-                        お使いのブラウザは動画再生に対応していません。
-                    </video>
+                if fire_gif_base64:
+                    # HTMLの<img>タグを使い、GIF画像を表示します。
+                    gif_html = f"""
+                        <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                            <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                        </div>
                     """
-                    st.components.v1.html(video_html) # 表示する高さを適宜調整してください
+                    st.components.v1.html(gif_html, height=400) # 表示する高さを適宜調整してください
                 
         # フィードバックのために結果を保存
         st.session_state.last_result = {
@@ -208,7 +217,7 @@ if 'last_result' in st.session_state:
         last_result = st.session_state.last_result
         if check != last_result['source_file']:
             try:
-                with open('different_sim.txt', 'a', encoding="utf-8") as file:
+                with open(diff_sim_txt_path, 'a', encoding="utf-8") as file:
                     # 最も類似したスコアを書き込むように修正
                     file.write(f"\n{last_result['similarity_score']:.4f}")
                 st.toast("フィードバックを記録しました。ありがとうございます。")
