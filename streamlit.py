@@ -85,17 +85,17 @@ def load_and_vectorize_data(_tokenizer, _model):
 
 # 動画ファイルをBase64にエンコードする関数（キャッシュあり）
 @st.cache_data
-def get_video_as_base64(path):
-    """動画ファイルを読み込み、Base64エンコードされた文字列を返す。"""
+def get_file_as_base64(path):
+    """ファイルを読み込み、Base64エンコードされた文字列を返す。"""
     try:
         with open(path, "rb") as f:
             data = f.read()
         return base64.b64encode(data).decode()
     except FileNotFoundError:
-        st.error(f"動画ファイルが見つかりません: {path}")
+        st.error(f"ファイルが見つかりません: {path}")
         return None
     except Exception as e:
-        st.error(f"動画読み込みエラー: {e}")
+        st.error(f"ファイル読み込みエラー: {e}")
         return None
     
 # --- Streamlit アプリケーションのUIとロジック ---
@@ -105,11 +105,11 @@ st.title("炎上判定システム")
 # --- ファイルパスの準備 ---
 # スクリプトファイルがあるディレクトリの絶対パスを取得
 script_dir = os.path.dirname(os.path.abspath(__file__))
-# 動画ファイルのパスを構築 (より互換性の高い.mp4形式を推奨)
-video_path = os.path.join(script_dir, "fire2.mp4")
+# GIFファイルのパスを構築
+gif_path = os.path.join(script_dir, "fire.gif")
 
-# 動画を事前に読み込んでおく
-fire_video_base64 = get_video_as_base64(video_path)
+# GIFを事前に読み込んでおく
+fire_gif_base64 = get_file_as_base64(gif_path)
 
 # モデルとデータの準備
 tokenizer, model = load_model_and_tokenizer()
@@ -182,16 +182,14 @@ if st.button("判定実行"):
             elif "out" in source_file:
                 st.error(f"判定：OUT、バズスコア：{B}")
                 # --- ここから動画再生のロジック ---
-                if fire_video_base64:
-                    # HTMLの<video>タグを使い、動画を自動再生します。
-                    # autoplay: 自動再生, muted: 消音(自動再生に必要), loop: 繰り返し, controls: 再生コントロール表示
-                    video_html = f"""
-                    <video controls autoplay muted loop playsinline style="width: 100px; height: 100px; object-fit: contain;">
-                        <source src="data:video/mp4;base64,{fire_video_base64}" type="video/mp4">
-                        お使いのブラウザは動画再生に対応していません。
-                    </video>
+                if fire_gif_base64:
+                    # HTMLの<img>タグを使い、GIF画像を表示します。
+                    gif_html = f"""
+                        <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                            <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                        </div>
                     """
-                    st.components.v1.html(video_html) # 表示する高さを適宜調整してください
+                    st.components.v1.html(gif_html, height=400) # 表示する高さを適宜調整してください
                 
         # フィードバックのために結果を保存
         st.session_state.last_result = {
