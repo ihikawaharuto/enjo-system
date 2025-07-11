@@ -102,7 +102,7 @@ def get_video_as_base64(path):
 st.title("炎上判定システム")
 
 # 動画を事前に読み込んでおく
-fire_video_base64 = get_video_as_base64("fire.webm")
+fire_video_base64 = get_video_as_base64("fire2.mov")
 
 # モデルとデータの準備
 tokenizer, model = load_model_and_tokenizer()
