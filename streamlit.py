@@ -177,20 +177,6 @@ if st.button("判定実行"):
                 # --- ここから動画再生のロジック ---
                 if fire_video_base64:
                     video_html = f"""
-                    <style>
-                        .overlay-video-container {{
-                            position: fixed; /* 画面に固定 */
-                            top: 50%;        /* 上から50%の位置 */
-                            left: 50%;       /* 左から50%の位置 */
-                            width: 400px;    /* 動画の幅を調整 */
-                            height: auto;
-                            z-index: 1000;
-                            pointer-events: none; /* 動画がクリック等の操作を妨げないようにする */
-                        }}
-                    </style>
-                    <div class="overlay-video-container">
-                        <video src="data:video/webm;base64,{fire_video_base64}" autoplay loop muted playsinline></video>
-                    </div>
                     """
                     st.components.v1.html(video_html, height=0)
                 
