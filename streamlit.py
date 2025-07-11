@@ -8,6 +8,9 @@ import os
 
 logging.basicConfig(level=logging.ERROR)
 
+# --- 定数定義 ---
+FIRE_GIF_FILENAME = "fire.gif"
+
 # --- 関数定義 (元のコードから構造を維持) ---
 
 # モデルとトークナイザーの読み込み（アプリ起動時に一度だけ実行される）
@@ -106,7 +109,7 @@ st.title("炎上判定システム")
 # スクリプトファイルがあるディレクトリの絶対パスを取得
 script_dir = os.path.dirname(os.path.abspath(__file__))
 # GIFファイルのパスを構築
-gif_path = os.path.join(script_dir, "fire.gif")
+gif_path = os.path.join(script_dir, FIRE_GIF_FILENAME)
 
 # GIFを事前に読み込んでおく
 fire_gif_base64 = get_file_as_base64(gif_path)
