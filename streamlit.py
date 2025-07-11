@@ -182,15 +182,10 @@ if st.button("判定実行"):
                             position: fixed; /* 画面に固定 */
                             top: 50%;        /* 上から50%の位置 */
                             left: 50%;       /* 左から50%の位置 */
-                            transform: translate(-50%, -50%); /* 要素自身のサイズを考慮して中央に配置 */
                             width: 400px;    /* 動画の幅を調整 */
                             height: auto;
                             z-index: 1000;
                             pointer-events: none; /* 動画がクリック等の操作を妨げないようにする */
-                        }}
-                        .overlay-video-container video {{
-                            mix-blend-mode: screen; /* 黒背景を透過させる */
-                            filter: brightness(1.5) drop-shadow(0 0 15px #ff8c00) drop-shadow(0 0 8px #ff4500); /* グロー効果を調整して迫力を出す */
                         }}
                     </style>
                     <div class="overlay-video-container">
