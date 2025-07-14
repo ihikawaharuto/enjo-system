@@ -151,7 +151,22 @@ for i, (label, count) in enumerate(follower_options.items()):
     cols[i].button(
         label, on_click=set_follower_count, args=(count,), use_container_width=True
     )
-if st.button("判定実行"):
+
+# 判定実行ボタンと炎のGIFを横並びに表示
+col1, col2 = st.columns([3, 1], vertical_alignment="bottom")
+
+with col1:
+    # ボタンのクリック状態を変数で受け取る
+    run_button = st.button("判定実行", use_container_width=True)
+
+with col2:
+    if fire_gif_base64:
+        # markdownを使ってHTMLで画像を表示
+        st.markdown(
+            f'<div style="text-align: center;"><img src="data:image/gif;base64,{fire_gif_base64}" alt="fire" height="50"></div>',
+            unsafe_allow_html=True,
+        )
+if run_button:
     if not text_x_input.strip():
         st.warning("テキストを入力してください。")
     elif not vec:
