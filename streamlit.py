@@ -163,7 +163,7 @@ with col2:
     if fire_gif_base64:
         # markdownを使ってHTMLで画像を表示
         st.markdown(
-            f'<div style="text-align: center;"><img src="data:image/gif;base64,{fire_gif_base64}" alt="fire" height="50"></div>',
+            f'<div style="text-align: center;"><img src="data:image/gif;base64,{fire_gif_base64}" alt="fire" height="50"><img src="data:image/gif;base64,{fire_gif_base64}" alt="fire" height="50"></div>',
             unsafe_allow_html=True,
         )
 if run_button:
