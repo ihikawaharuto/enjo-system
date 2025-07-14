@@ -194,13 +194,20 @@ if st.button("判定実行"):
                 st.error(f"判定：OUT、バズスコア：{B}")
                 # --- ここから動画再生のロジック ---
                 if fire_gif_base64:
-                    # HTMLの<img>タグを使い、GIF画像を表示します。
+                    # 画面中央にGIFを固定表示するためのHTMLとCSS
                     gif_html = f"""
-                        <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
-                            <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                        <div style="
+                            position: fixed;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            z-index: 9999;
+                            pointer-events: none; /* GIFの裏にある要素をクリックできるようにする */
+                        ">
+                            <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 80vw; max-height: 80vh;">
                         </div>
                     """
-                    st.components.v1.html(gif_html, height=400) # 表示する高さを適宜調整してください
+                    st.components.v1.html(gif_html, height=0) # コンポーネント自体の高さは不要
                 
         # フィードバックのために結果を保存
         st.session_state.last_result = {
