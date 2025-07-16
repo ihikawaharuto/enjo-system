@@ -210,7 +210,6 @@ if run_button:  # run_button の外から判定ロジックを移動
                         gif_html = f"""
                                 <div style="text-align: center;">
                                     <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 50%; max-height: 50%; width: auto; height: auto;">
-                                    <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 50%; max-height: 50%; width: auto; height: auto;">
                                 </div>
                         """
                         st.markdown(gif_html, unsafe_allow_html=True)
