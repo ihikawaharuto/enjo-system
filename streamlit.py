@@ -230,8 +230,8 @@ if 'last_result' in st.session_state:
         if check != last_result['source_file']:
             try:
                 with open(diff_sim_txt_path, 'a', encoding="utf-8") as file:
-                    # 最も類似したスコアを書き込むように修正
-                    file.write(f"\n{last_result['similarity_score']:.4f}")
+                    # スコアの後に改行を追加する方が一般的で安全です
+                    file.write(f"{last_result['similarity_score']:.4f}\n")
                 st.toast("フィードバックを記録しました。ありがとうございます。")
             except Exception as e:
                 st.error(f"フィードバックの保存中にエラーが発生しました: {e}")
