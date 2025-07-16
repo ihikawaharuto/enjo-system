@@ -160,63 +160,66 @@ with col1:
     run_button = st.button("判定実行", use_container_width=True)
 
 with col2:
-    if not text_x_input.strip():
-        st.warning("テキストを入力してください。")
-    elif not vec:
-        st.error("比較用データが見つかりません。safe.txt, out.txt を確認してください。")
-    else:
-        # text_xを受け取りベクトル化、類似度を測り、判定を出力
-        vec_x = text_vec(text_x_input, tokenizer, model)
+    pass  # col2 の初期表示を空にする
 
-        similarity_score = []
-        for tvec in vec:
-            similarities = comp_sim(vec_x, tvec)
-            similarity_score.append(similarities)
-        
-        most_similar_index = np.argmax(similarity_score)
-        most_similar_text, source_file, B = text_sources[most_similar_index]
-        most_similar_score = similarity_score[most_similar_index]
-
-        # IRLの計算
-        F = st.session_state.follower_count
-        if source_file == "safe":
-            P = 0
-        elif source_file == "out":
-            P = 1
-        
-        I = int(F * 0.3 + F ** 0.1 * (1 + 210970 * (int(B) / 100) ** 3.2 * (1 + 0.5 * (int(B) / 100) ** 5 * P)))
-        R = int(I * 0.01 * (1 + 2 * (int(B) / 100) ** 2) * (1 + P))
-        L = int(I * 0.03 * (1 + 0.5 * (int(B) / 100) ** 0.7) * (1 + 0.1 * P))
-
-        # 結果の表示
-        st.write("---")
-        st.write(f"似ている文：{most_similar_text}、類似度：{most_similar_score:.4f}")
-        st.write(f"インプレッション数：{I:,}、リポスト数：{R:,}、いいね数：{L:,}")
-
-        if most_similar_score < average_file(diff_sim_txt_path):  # 卍要検討卍
-            st.warning("判定不可")
+if run_button:  # run_button の外から判定ロジックを移動
+    with col2:  # 判定とGIF表示を col2 内で行う
+        if not text_x_input.strip():
+            st.warning("テキストを入力してください。")
+        elif not vec:
+            st.error("比較用データが見つかりません。safe.txt, out.txt を確認してください。")
         else:
-            if "safe" in source_file:
-                st.success(f"判定：SAFE、バズスコア：{B}")
-            elif "out" in source_file:
-                st.error(f"判定：OUT、バズスコア：{B}")
-                # --- ここから動画再生のロジック ---
-                with col2:  # col2にGIFを表示
+            # text_xを受け取りベクトル化、類似度を測り、判定を出力
+            vec_x = text_vec(text_x_input, tokenizer, model)
+
+            similarity_score = []
+            for tvec in vec:
+                similarities = comp_sim(vec_x, tvec)
+                similarity_score.append(similarities)
+
+            most_similar_index = np.argmax(similarity_score)
+            most_similar_text, source_file, B = text_sources[most_similar_index]
+            most_similar_score = similarity_score[most_similar_index]
+
+            # IRLの計算
+            F = st.session_state.follower_count
+            if source_file == "safe":
+                P = 0
+            elif source_file == "out":
+                P = 1
+
+            I = int(F * 0.3 + F ** 0.1 * (1 + 210970 * (int(B) / 100) ** 3.2 * (1 + 0.5 * (int(B) / 100) ** 5 * P)))
+            R = int(I * 0.01 * (1 + 2 * (int(B) / 100) ** 2) * (1 + P))
+            L = int(I * 0.03 * (1 + 0.5 * (int(B) / 100) ** 0.7) * (1 + 0.1 * P))
+
+            # 結果の表示
+            st.write("---")
+            st.write(f"似ている文：{most_similar_text}、類似度：{most_similar_score:.4f}")
+            st.write(f"インプレッション数：{I:,}、リポスト数：{R:,}、いいね数：{L:,}")
+
+            if most_similar_score < average_file(diff_sim_txt_path):  # 卍要検討卍
+                st.warning("判定不可")
+            else:
+                if "safe" in source_file:
+                    st.success(f"判定：SAFE、バズスコア：{B}")
+                elif "out" in source_file:
+                    st.error(f"判定：OUT、バズスコア：{B}")
+                    # --- ここから動画再生のロジック ---
                     if fire_gif_base64:
                         # 画面中央にGIFを表示するためのHTMLとCSS
                         gif_html = f"""
-                            <div style="text-align: center;">
-                                <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 80vw; max-height: 80vh; width: auto; height: auto;">
-                                <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 80vw; max-height: 80vh; width: auto; height: auto;">
-                            </div>
+                                <div style="text-align: center;">
+                                    <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 80vw; max-height: 80vh; width: auto; height: auto;">
+                                    <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 80vw; max-height: 80vh; width: auto; height: auto;">
+                                </div>
                         """
                         st.markdown(gif_html, unsafe_allow_html=True)
-                
-        # フィードバックのために結果を保存
-        st.session_state.last_result = {
-            'source_file': source_file,
-            'similarity_score': most_similar_score
-        }
+
+            # フィードバックのために結果を保存
+            st.session_state.last_result = {
+                'source_file': source_file,
+                'similarity_score': most_similar_score
+            }
 
 # フィードバックセクション
 if 'last_result' in st.session_state:
