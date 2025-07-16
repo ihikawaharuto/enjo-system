@@ -204,15 +204,15 @@ if run_button:  # run_button の外から判定ロジックを移動
                 elif "out" in source_file:
                     st.error(f"判定：OUT、バズスコア：{B}")
                     # --- ここから動画再生のロジック ---
-                with col2:  # 判定とGIF表示を col2 内で行う
-                    if fire_gif_base64:
-                        # 画面中央にGIFを表示するためのHTMLとCSS
-                        gif_html = f"""
-                                <div style="text-align: center;">
-                                    <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 50%; max-height: 50%; width: auto; height: auto;">
-                                </div>
-                        """
-                        st.markdown(gif_html, unsafe_allow_html=True)
+                    with col2:  # 判定とGIF表示を col2 内で行う
+                        if fire_gif_base64:
+                            # 画面中央にGIFを表示するためのHTMLとCSS
+                            gif_html = f"""
+                                    <div style="text-align: center;">
+                                        <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 50%; max-height: 50%; width: auto; height: auto;">
+                                    </div>
+                            """
+                            st.markdown(gif_html, unsafe_allow_html=True)
 
             # フィードバックのために結果を保存
             st.session_state.last_result = {
