@@ -160,13 +160,6 @@ with col1:
     run_button = st.button("判定実行", use_container_width=True)
 
 with col2:
-    if fire_gif_base64:
-        # markdownを使ってHTMLで画像を表示
-        st.markdown(
-            f'<div style="text-align: center;"><img src="data:image/gif;base64,{fire_gif_base64}" alt="fire" height="50"><img src="data:image/gif;base64,{fire_gif_base64}" alt="fire" height="50"></div>',
-            unsafe_allow_html=True,
-        )
-if run_button:
     if not text_x_input.strip():
         st.warning("テキストを入力してください。")
     elif not vec:
@@ -208,22 +201,16 @@ if run_button:
             elif "out" in source_file:
                 st.error(f"判定：OUT、バズスコア：{B}")
                 # --- ここから動画再生のロジック ---
-                if fire_gif_base64:
-                    # 画面中央にGIFを固定表示するためのHTMLとCSS
-                    gif_html = f"""
-                        <div style="
-                            position: fixed;
-                            top: 50%;
-                            left: 50%;
-                            transform: translate(-50%, -50%);
-                            z-index: 9999;
-                            pointer-events: none; /* GIFの裏にある要素をクリックできるようにする */
-                        ">
-                            <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 80vw; max-height: 80vh; width: auto; height: auto;">\
-                            <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 80vw; max-height: 80vh; width: auto; height: auto;">
-                        </div>
-                    """
-                    st.components.v1.html(gif_html, height=0)  # コンポーネント自体の高さは不要
+                with col2:  # col2にGIFを表示
+                    if fire_gif_base64:
+                        # 画面中央にGIFを表示するためのHTMLとCSS
+                        gif_html = f"""
+                            <div style="text-align: center;">
+                                <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 80vw; max-height: 80vh; width: auto; height: auto;">
+                                <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 80vw; max-height: 80vh; width: auto; height: auto;">
+                            </div>
+                        """
+                        st.markdown(gif_html, unsafe_allow_html=True)
                 
         # フィードバックのために結果を保存
         st.session_state.last_result = {
