@@ -219,10 +219,11 @@ if run_button:
                             z-index: 9999;
                             pointer-events: none; /* GIFの裏にある要素をクリックできるようにする */
                         ">
+                            <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 80vw; max-height: 80vh; width: auto; height: auto;">\
                             <img src="data:image/gif;base64,{fire_gif_base64}" alt="炎上GIF" style="max-width: 80vw; max-height: 80vh; width: auto; height: auto;">
                         </div>
                     """
-                    st.components.v1.html(gif_html, height=0) # コンポーネント自体の高さは不要
+                    st.components.v1.html(gif_html, height=0)  # コンポーネント自体の高さは不要
                 
         # フィードバックのために結果を保存
         st.session_state.last_result = {
