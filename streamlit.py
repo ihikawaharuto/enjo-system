@@ -163,7 +163,6 @@ with col2:
     pass  # col2 の初期表示を空にする
 
 if run_button:  # run_button の外から判定ロジックを移動
-    with col2:  # 判定とGIF表示を col2 内で行う
         if not text_x_input.strip():
             st.warning("テキストを入力してください。")
         elif not vec:
@@ -205,6 +204,7 @@ if run_button:  # run_button の外から判定ロジックを移動
                 elif "out" in source_file:
                     st.error(f"判定：OUT、バズスコア：{B}")
                     # --- ここから動画再生のロジック ---
+                with col2:  # 判定とGIF表示を col2 内で行う
                     if fire_gif_base64:
                         # 画面中央にGIFを表示するためのHTMLとCSS
                         gif_html = f"""
