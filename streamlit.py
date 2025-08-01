@@ -2,7 +2,7 @@ import streamlit as st
 import torch
 from transformers import BertJapaneseTokenizer, BertModel
 import logging
-import numpy as np  #環境問題(Pythonのバージョンを3.11に設定・変更したため解決)
+import numpy as np  #環境問題(streamlitのアプリで解決)
 import base64
 import os
 
